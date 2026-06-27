@@ -12,9 +12,67 @@ datasource db {
   provider = "postgresql"
 }
 
-model Test{
-  id String @id @default(uuid())
-  name String
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String?  @unique
+  firstName String?
+  lastName  String?
+  name      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects Project[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages Message[]
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+enum MessageType {
+  RESULT
+  ERROR
+}
+
+model Message {
+  id      String      @id @default(cuid())
+  content String
+  role    MessageRole
+  type    MessageType
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fragments Fragment?
+}
+
+model Fragment {
+  id        String  @id @default(cuid())
+  messageId String  @unique
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  sandboxUrl String
+  title      String
+  files      Json
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
